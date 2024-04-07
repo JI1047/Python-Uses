@@ -1,1 +1,90 @@
-데이터 시각화
+import matplotlib.pyplot as plt
+import random
+import math
+
+def distance(x1, y1, x2, y2):#두 점사이의 거리
+    result = math.sqrt( math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2))
+    return result
+
+def get_x(lst):#여러번 나와서 선언했습니다.
+    return [x for (x,y) in lst]
+
+def get_y(lst):#여러번 나와서 선언했습니다2.
+    return  [y for (x,y) in lst]
+
+def calculate_average(lst):#평균 구하는 함수
+    if not lst:
+        return None  
+    
+    lst_x = get_x(lst)
+    lst_y = get_y(lst)
+    total = sum(lst_x)
+    average_x = total / 100
+    total = sum(lst_y)
+    average_y = total/100
+    return (average_x,average_y)
+
+def newcolorapply(blue,red,avg_b, avg_r):#거리에 따라 파랑 빨강을 나는 함수
+    ret_b = []#blue업데이트 저장을 위한 임시공간리스트
+    ret_r = []#red업데이트 저장을 위한 임시공간리스트
+    
+    for x,y in blue:
+        dis1=distance(avg_r[0],avg_r[1],x,y)
+        dis2=distance(avg_b[0],avg_b[1],x,y)
+        if (dis1>dis2):#거리 1>거리 2일떄
+            ret_b.append((x,y))
+        else:#거리2>=거리 1일떄
+            ret_r.append((x,y))
+
+    for x,y in red:
+        dis1=distance(avg_r[0],avg_r[1],x,y)
+        dis2=distance(avg_b[0],avg_b[1],x,y)
+        if (dis2>dis1):#거리 2>거리 1일떄
+            ret_r.append((x,y))
+        else:#거리1>=거리 2일떄
+            ret_b.append((x,y))
+
+    return (ret_b,ret_r)
+        
+def show_chart(lst1, lst2,title):#차트를 보여주는 함수
+    plt.figure()#Before after을 비교하기 위해 두개의 창을 띄우게 할 수있다
+    plt.scatter(get_x(lst1),get_y(lst1),c = "red",label='Data 1')#좌표,색깔,라벨을산점도에 플로팅
+    plt.scatter(get_x(lst2),get_y(lst2),c = "blue",label='Data 2')
+
+    plt.legend(loc='upper left')#범례 표시 왼쪽 위 위치에 고정
+    plt.title(title)
+
+randomXY = set()#중복을 허용하지 않는 좌표 쌍을 저장하기 위한 set()셋팅
+   
+    
+while len(randomXY)<200: #200개의 x,y좌표
+
+    x1 = random.randint(0, 401)# 0이상 401미만의 범위 설정
+    y1 = random.randint(0, 401)
+    randomXY.add((x1, y1))
+
+randomXY = list(randomXY)
+
+red = randomXY[:100]
+blue = randomXY[100:]
+
+show_chart(red,blue,"Before")
+avg_b = calculate_average(blue)#blue리스트의 평균
+avg_r = calculate_average(red)#red리스트의 평균
+
+while(True):
+    
+    blue, red = newcolorapply(blue,red,avg_b,avg_r)#blue 와 red를 업데이트
+    avg_b_update = calculate_average(blue)#업데이트 된 blue list의 평균을 구함(현재)
+    avg_r_update = calculate_average(red)#업데이트 된 red list의 평균을 구함(현재)
+    print(avg_b,avg_b_update,avg_r,avg_r_update)
+    if(avg_b == avg_b_update and avg_r == avg_r_update):#전과 현재의 평균을 비교함
+        break #같으면 종료
+
+    else:
+        avg_r = avg_r_update#다르다면 전의 평균을 현재의 평균으로 업데이트해준다.
+        avg_b = avg_b_update
+
+show_chart(red,blue,"After")
+   
+plt.show()  # 산점도 표시
