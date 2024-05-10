@@ -1,0 +1,107 @@
+class Playfair:
+    def __init__(self, mKey, mPair):
+        self.mKey = mKey
+        self.mPair = mPair 
+        self.mTable = [''] * 25 # 25개의 배열 생성(테이블)
+
+    #표채우기
+    def make_table(self):
+        sub1 = self.mPair[0]  # q
+        sub2 = self.mPair[2:4]  # z
+      
+        self.mKey = self.mKey.upper()
+       
+        used = {}#사용된 문자들을 저장할 배열
+        row = 0
+        #mkey값을 먼저 대입
+        for ch in self.mKey:
+            if ch not in used:#사용된 문자가 아닌경우
+                self.mTable[row] = ch   
+                used[ch] = True#사용되었으면 배열에 여부를 저장
+                row += 1
+
+        #mkey를 제외한 알파벳을 저장
+        for ch in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            if ch != sub2[0] and ch not in used:
+                self.mTable[row] = ch
+                row += 1
+    #표출력하기
+    def show_table(self):
+        for i in range(25):
+            print(self.mTable[i], end=' ')
+            if i != 0 and (i + 1) % 5 == 0:
+                print()
+    #위치 반환
+    def find_position(self, char):
+        sub1 = self.mPair[0]
+        sub2 = self.mPair[2:4]
+        if char == sub2[0]:#z는q로 대체
+            char = sub1
+        for i in range(25):
+            if self.mTable[i] == char:
+                return i // 5, i % 5#행과열을 반환
+        return -1, -1
+    #결과
+    def encrypt_pair(self, a, b):
+        posA = self.find_position(a)#posA[0]=행(세로)posA[1]=열(가로)
+        posB = self.find_position(b)
+
+        if posA[0] == -1 or posB[0] == -1:
+            return "ERROR"
+
+        result = ""
+        #같은 행일 경우
+        #posA[0]은 행 posA[1]은 열
+        if posA[0] == posB[0]:#넘어가면 제일 왼쪽칸으로
+            if posB[1] == 4:
+                posB = posB[0], -1
+            if posA[1] == 4:
+                posA = posA[0], -1
+            result += self.mTable[(posA[0] * 5 + posA[1] + 1) % 25]
+            result += self.mTable[(posB[0] * 5 + posB[1] + 1) % 25]
+        #같은 열일 경우
+        elif posA[1] == posB[1]:
+            if posB[0] == 4:#넘어가면 제일 위쪽칸으로
+                posB = -1, posB[1]
+            if posA[0] == 4:#넘어가면 제일 위쪽칸으로
+                posA = -1, posA[1]
+            result += self.mTable[((posA[0] + 1) % 5) * 5 + posA[1]]
+            result += self.mTable[((posB[0] + 1) % 5) * 5 + posB[1]]
+        #행과열이다를경우
+        else:
+            result += self.mTable[posA[0] * 5 + posB[1]]
+            result += self.mTable[posB[0] * 5 + posA[1]]
+
+        return result
+    #2개씩자르기
+    
+    def make_encryption(self, m_encryption):
+        ch = 'X'
+        result = ""
+        a=0
+        
+
+        while a < len(m_encryption):
+            
+            if a+2>len(m_encryption):#한글자면 'X'삽입 S=SX
+                sub1 = m_encryption[a:a + 1] + ch
+                result += self.encrypt_pair(sub1[0], sub1[1]) + " "
+                break
+            sub1 = m_encryption[a:a + 2]
+           
+            if sub1[0] == sub1[1]:#같은 글자면 'X'로대체
+                sub1 = sub1[0] + ch#SS=SX
+                a-=1
+            result += self.encrypt_pair(sub1[0], sub1[1]) + " "
+            a+=2
+        return result
+
+def main():
+    pfair = Playfair("assasinator", "Q/Z")
+    pfair.make_table()
+    pfair.show_table()
+    encrypted_pair = pfair.make_encryption("BECAREFULFORASSASSINATOR")
+    print("Encrypted Pair:", encrypted_pair)
+
+if __name__ == "__main__":
+    main()
